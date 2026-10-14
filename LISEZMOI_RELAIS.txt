@@ -1,0 +1,42 @@
+============================================================
+  RELAIS PUBLIC - Centre d'Entraide de Jette
+============================================================
+
+Ce dossier contient le petit service "relais" à héberger sur
+Internet pour permettre le suivi de la file depuis la 4G/5G et
+tout Wi-Fi extérieur.
+
+HÉBERGEUR RECOMMANDÉ (GRATUIT, SANS CARTE) : Render.com
+Le même dossier fonctionne aussi sur Koyeb, Fly.io, Railway...
+Le fichier render.yaml permet un déploiement en un clic sur
+Render. Détails pas à pas dans GUIDE_ACCES_INTERNET.txt.
+
+RÔLE : recevoir les informations PUBLIQUES poussées par le PC
+local et les afficher aux téléphones. Aucun accès à
+l'administration ni à la base de données locale.
+
+FICHIERS
+--------
+  relay.py            Le serveur relais (Python/Flask)
+  suivi_relais.html   La page de suivi pour téléphone (autonome)
+  requirements.txt    Les dépendances
+  Procfile            Commande de démarrage (gunicorn)
+  railway.json        Configuration Railway
+  logo.png            (à ajouter) votre logo, affiché sur la page
+
+VARIABLE D'ENVIRONNEMENT OBLIGATOIRE
+------------------------------------
+  RELAY_KEY = une phrase secrète partagée avec le PC local.
+  (La même valeur doit être saisie dans les Réglages de
+   l'application, champ "Clé du relais".)
+
+DÉMARRAGE LOCAL POUR TEST
+-------------------------
+  Windows :  set RELAY_KEY=ma-cle & python relay.py
+  Linux/Mac: RELAY_KEY=ma-cle python3 relay.py
+  Puis ouvrez http://localhost:8090/suivi
+
+DÉPLOIEMENT
+-----------
+Voir "GUIDE_ACCES_INTERNET.txt" dans le dossier principal pour
+les étapes détaillées pas à pas.

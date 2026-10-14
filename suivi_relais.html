@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Suivi de la file — Centre d'Entraide de Jette</title>
+  <style>
+    :root{--vert:#1a6b54;--vert-fonce:#134a3a;--texte:#1a3a33;--texte-doux:#5b6b66;--rouge:#c0392b;--orange:#d9822b;}
+    *{box-sizing:border-box;}
+    body{margin:0;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:linear-gradient(160deg,#134a3a,#1a6b54);min-height:100vh;color:#fff;}
+    .m-wrap{max-width:480px;margin:0 auto;padding:16px;}
+    .m-entete{text-align:center;padding:12px 0;}
+    .m-entete img{height:64px;background:#fff;border-radius:10px;padding:6px;}
+    .m-entete .nom{font-size:16px;font-weight:700;margin-top:8px;}
+    .m-courant{background:#fff;color:var(--texte);border-radius:18px;padding:24px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.15);margin:14px 0;}
+    .m-courant .lbl{font-size:14px;color:var(--texte-doux);letter-spacing:1px;font-weight:600;}
+    .m-courant .num{font-size:92px;font-weight:800;line-height:1;color:var(--vert);margin:6px 0;}
+    .m-statut{display:inline-block;padding:6px 16px;border-radius:20px;font-weight:700;font-size:14px;}
+    .m-statut.en_cours{background:#e8f6ef;color:var(--vert-fonce);}
+    .m-statut.pause{background:#fdecea;color:var(--rouge);}
+    .m-statut.terminee{background:#eef1f0;color:var(--texte-doux);}
+    .m-carte{background:rgba(255,255,255,.12);border-radius:16px;padding:16px;margin:12px 0;}
+    .m-carte h3{margin:0 0 10px;font-size:14px;opacity:.85;text-transform:uppercase;letter-spacing:.5px;}
+    .m-derniers{display:flex;flex-wrap:wrap;gap:8px;}
+    .m-derniers span{background:rgba(255,255,255,.2);border-radius:10px;padding:8px 14px;font-size:22px;font-weight:800;}
+    .m-derniers span:first-child{background:#fff;color:var(--vert);}
+    .m-attente{text-align:center;font-size:15px;}
+    .m-attente b{font-size:34px;display:block;}
+    .m-msg{text-align:center;font-size:14px;opacity:.9;padding:10px;}
+    .m-maj{text-align:center;font-size:12px;opacity:.7;padding:8px;}
+    .m-hors{background:var(--orange);color:#fff;text-align:center;padding:8px;border-radius:10px;font-size:13px;font-weight:600;margin:8px 0;display:none;}
+  </style>
+</head>
+<body>
+  <div class="m-wrap">
+    <div class="m-entete">
+      <img src="/logo" alt="Logo" onerror="this.style.display='none'">
+      <div class="nom" id="nom">Centre d'Entraide de Jette</div>
+    </div>
+    <div id="horsLigne" class="m-hors">⚠️ Connexion interrompue — dernières informations connues</div>
+    <div class="m-courant">
+      <div class="lbl">NUMÉRO EN COURS</div>
+      <div class="num" id="num">—</div>
+      <span class="m-statut en_cours" id="statut">En cours</span>
+    </div>
+    <div class="m-carte">
+      <h3>Derniers numéros appelés</h3>
+      <div class="m-derniers" id="derniers"><span style="opacity:.6">—</span></div>
+    </div>
+    <div class="m-carte m-attente">Personnes encore en attente<b id="attente">—</b></div>
+    <div class="m-msg" id="msg"></div>
+    <div class="m-maj" id="maj"></div>
+  </div>
+  <script>
+    const API='/api/etat_public'; let dernMaj=null;
+    const lib=s=>({en_cours:'En cours',pause:'En pause',terminee:'Terminée'}[s]||s);
+    function rendre(e){
+      document.getElementById('horsLigne').style.display='none';
+      if(e.nom)document.getElementById('nom').textContent=e.nom;
+      document.getElementById('num').textContent=e.numero_courant||'—';
+      const st=document.getElementById('statut');st.textContent=lib(e.statut);st.className='m-statut '+e.statut;
+      const d=document.getElementById('derniers');
+      if(e.derniers&&e.derniers.length){d.innerHTML='';e.derniers.forEach(n=>{const s=document.createElement('span');s.textContent=n;d.appendChild(s);});}
+      else d.innerHTML='<span style="opacity:.6">Aucun pour l\'instant</span>';
+      document.getElementById('attente').textContent=(e.en_attente!=null?e.en_attente:'—');
+      document.getElementById('msg').textContent=e.message||'';
+      if(e.maj){dernMaj=e.maj;document.getElementById('maj').textContent='Dernière mise à jour : '+(e.maj.split('T')[1]||'');}
+    }
+    function horsLigne(){document.getElementById('horsLigne').style.display='block';
+      if(dernMaj)document.getElementById('maj').textContent='Hors ligne — dernière info à '+(dernMaj.split('T')[1]||'');}
+    async function rafraichir(){try{const r=await fetch(API,{cache:'no-store'});if(!r.ok)throw 0;rendre(await r.json());}catch(e){horsLigne();}}
+    rafraichir();
+    if(window.EventSource){try{const es=new EventSource('/flux_public');es.onmessage=ev=>{try{rendre(JSON.parse(ev.data));}catch(e){}};}catch(e){}}
+    setInterval(rafraichir,3000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Configuration pour un déploiement en un clic sur Render (gratuit).
+# Render détecte ce fichier automatiquement (option "Blueprint").
+services:
+  - type: web
+    name: file-attente-jette
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn relay:app --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 120
+    healthCheckPath: /sante
+    envVars:
+      - key: RELAY_KEY
+        sync: false   # à saisir vous-même dans Render (valeur secrète)
